@@ -22,7 +22,7 @@ async function Page() {
         Complete your profile now to use Threads
       </p>
 
-      <section className="mt-9 bg-dark-2 pt-10">
+      <section className="mt-9 bg-dark-2 p-10 rounded">
         <AccountProfile btnTitle='Continue' user={userData}/>
       </section>
     </main>
