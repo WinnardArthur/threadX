@@ -12,6 +12,7 @@ type Params = {
   path: string;
 };
 
+// Create a new thread
 export async function createThread({
   text,
   author,
@@ -36,4 +37,39 @@ export async function createThread({
   } catch (error: any) {
     throw new Error(`Failed to create thread: ${error.message}`);
   }
+}
+
+// Fetch Threads
+export async function fetchThreads({ pageNumber = 1, pageSize = 20 }) {
+  connectToDB();
+
+  // Calculate the number of threads to skip
+  const skipAmount = (pageNumber - 1) * pageSize;
+
+  // Find threads with no parents (top-level threads...)
+  const threadsQuery = Thread.find({ parentId: { $in: [null, undefined] } })
+    .sort({ createdAt: "desc" })
+    .skip(skipAmount)
+    .limit(pageSize)
+    .populate({ path: "author", model: User })
+    .populate({
+      path: "children",
+      populate: {
+        path: "author",
+        model: User,
+        select: "_id name parentId image",
+      },
+    });
+
+  // Count number of top level threads
+  const totalThreadsCount = await Thread.countDocuments({
+    parentId: { $in: [null, undefined] },
+  });
+
+  // Execute the threadsQuery
+  const threads = await threadsQuery.exec();
+
+  const isNext = totalThreadsCount > skipAmount + threads.length;
+
+  return { threads, isNext };
 }
