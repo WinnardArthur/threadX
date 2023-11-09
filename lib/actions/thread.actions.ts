@@ -12,7 +12,7 @@ type Params = {
   path: string;
 };
 
-// Create a new thread
+//* Create a new thread
 export async function createThread({
   text,
   author,
@@ -39,7 +39,7 @@ export async function createThread({
   }
 }
 
-// Fetch Threads
+//* Fetch Threads
 export async function fetchThreads({ pageNumber = 1, pageSize = 20 }) {
   connectToDB();
 
@@ -72,4 +72,43 @@ export async function fetchThreads({ pageNumber = 1, pageSize = 20 }) {
   const isNext = totalThreadsCount > skipAmount + threads.length;
 
   return { threads, isNext };
+}
+
+//* Fetch thread by id
+export async function fetchThreadById({ id }: { id: string }) {
+  connectToDB();
+
+  try {
+    // TODO: Populate community
+    const thread = await Thread.findById(id)
+      .populate({
+        path: "author",
+        model: User,
+        select: "_id id name image",
+      })
+      .populate({
+        path: "children",
+        populate: [
+          {
+            path: "author",
+            model: User,
+            select: "_id id name parentId image",
+          },
+          {
+            path: "children",
+            model: Thread,
+            populate: {
+              path: "author",
+              model: User,
+              select: "_id id name parentId image",
+            },
+          },
+        ],
+      })
+      .exec();
+
+    return thread;
+  } catch (error: any) {
+    throw new Error(`Error fetching thread: ${error.message}`);
+  }
 }
