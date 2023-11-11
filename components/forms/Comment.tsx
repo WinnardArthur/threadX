@@ -45,7 +45,7 @@ const Comment = ({ threadId, currentUserImg, currentUserId }: CommentProps) => {
       path: pathname,
     });
 
-    router.push("/");
+    
   };
 
   return (
@@ -56,17 +56,16 @@ const Comment = ({ threadId, currentUserImg, currentUserId }: CommentProps) => {
           name="thread"
           render={({ field }) => (
             <FormItem className="flex items-center w-full gap-3">
-              <FormLabel className="block">
+              <FormLabel className="block relative h-[3rem] w-[3rem]">
                 <Image
                   src={currentUserImg}
                   alt="Profile image"
-                  width={48}
-                  height={48}
+                  fill
                   className="rounded-full object-cover block"
                 />
               </FormLabel>
 
-              <FormControl className="border-none bg-transparent">
+              <FormControl className="border-none bg-transparent flex-1">
                 <Input
                   type="text"
                   placeholder="Comment"

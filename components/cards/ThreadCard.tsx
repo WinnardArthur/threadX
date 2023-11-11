@@ -45,19 +45,22 @@ const ThreadCard = ({
       <div className="flex items-start justify-between">
         <div className="flex w-full flex-1 flex-row gap-4">
           <div className="flex flex-col items-center">
-            <Link href={`/profile/${author.id}`} className="relative h-11 w-11">
+            <Link
+              href={`/profile/${author.id}`}
+              className="relative h-[2.8rem] w-[2.8rem]"
+            >
               <Image
                 src={author.image}
                 alt="profile image"
                 fill
-                className="cursor-pointer rounded-full"
+                className="cursor-pointer rounded-full object-cover"
               />
             </Link>
 
             <div className="thread-card_bar" />
           </div>
 
-          <div className="flex w-full flex-col">
+          <div className="flex w-full flex-col flex-1">
             <Link className="w-fit" href={`/profile/${author.id}`}>
               <h4 className="cursor-pointer text-base-semibold text-light-1">
                 {author.name}
@@ -66,7 +69,7 @@ const ThreadCard = ({
 
             <p className="mt-2 text-small-regular text-light-2">{content}</p>
 
-            <div className="mt-5 flex flex-col gap-3">
+            <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className="flex gap-3.5">
                 <Image
                   src="/assets/heart-gray.svg"
@@ -103,7 +106,8 @@ const ThreadCard = ({
               {isComment && comments.length > 0 && (
                 <Link href={`/thread/${id}`}>
                   <p className="mt-1 text-subtle-medium text-gray-1">
-                    {comments.length} replies
+                    {comments.length}{" "}
+                    {`${comments.length === 1 ? "reply" : "replies"}`}
                   </p>
                 </Link>
               )}
