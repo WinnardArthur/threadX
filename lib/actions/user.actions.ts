@@ -135,3 +135,32 @@ export async function fetchUsers({
     throw new Error(`Failed to fetch users: ${error.message}`);
   }
 }
+
+// Get Notifications or activities
+export async function getActivity({ userId }: { userId: string }) {
+  connectToDB();
+
+  try {
+    // Find all threads created by user
+    const userThreads = await Thread.find({ author: userId });
+
+    // Get all child thread ids(replies) from children field
+    const childThreadIds = userThreads.reduce((acc, userThread) => {
+      return acc.concat(userThread.children);
+    }, []);
+
+    // Get replies or threads excluding author's threads
+    const replies = await Thread.find({
+      _id: { $in: childThreadIds },
+      author: { $ne: userId },
+    }).populate({
+      path: "author",
+      model: User,
+      select: "name image _id",
+    });
+
+    return replies;
+  } catch (error: any) {
+    throw new Error(`Failed to get activities: ${error.message}`);
+  }
+}
