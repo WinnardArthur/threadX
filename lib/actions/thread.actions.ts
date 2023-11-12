@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
+import Community from "../models/community.model";
 
 type Params = {
   text: string;
@@ -21,17 +22,29 @@ export async function createThread({
 }: Params) {
   connectToDB();
 
+  const communityIdObject = await Community.findOne(
+    { id: communityId },
+    { _id: 1 }
+  );
+
   try {
     const createdThread = await Thread.create({
       text,
       author,
-      community: null,
+      community: communityIdObject,
     });
 
     // Update user model
     await User.findByIdAndUpdate(author, {
       $push: { threads: createdThread._id },
     });
+
+    // Update community
+    if (communityIdObject) {
+      await Community.findByIdAndUpdate(communityIdObject, {
+        $push: { threads: createdThread._id },
+      });
+    }
 
     revalidatePath(path);
   } catch (error: any) {
@@ -52,6 +65,7 @@ export async function fetchThreads({ pageNumber = 1, pageSize = 20 }) {
     .skip(skipAmount)
     .limit(pageSize)
     .populate({ path: "author", model: User })
+    .populate({path: 'community', model: Community})
     .populate({
       path: "children",
       populate: {
@@ -132,14 +146,14 @@ export async function addCommentToThread({
     const originalThread = await Thread.findById(threadId);
 
     if (!originalThread) {
-      throw new Error('Thread not found');
+      throw new Error("Thread not found");
     }
 
     // Create a new thread with the comment text
     const commentThread = new Thread({
       text: commentText,
       author: userId,
-      parentId: threadId
+      parentId: threadId,
     });
 
     // save the new thread
@@ -152,7 +166,6 @@ export async function addCommentToThread({
     await originalThread.save();
 
     revalidatePath(path);
-    
   } catch (error: any) {
     throw new Error(`Error adding comment to thread: ${error.message}`);
   }
